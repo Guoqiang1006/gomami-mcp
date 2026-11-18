@@ -72,7 +72,7 @@
 ### Claude Code
 
 ```bash
-claude mcp add gomami --scope user -- uvx --from git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0 gomami-mcp
+claude mcp add gomami --scope user -- uvx gomami-mcp@0.1.1
 ```
 
 ### Codex
@@ -82,7 +82,7 @@ claude mcp add gomami --scope user -- uvx --from git+https://github.com/Guoqiang
 ```toml
 [mcp_servers.gomami]
 command = "uvx"
-args = ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"]
+args = ["gomami-mcp@0.1.1"]
 env = { GOMAMI_MCP_ACCESS = "read" }
 startup_timeout_sec = 60
 ```
@@ -97,7 +97,7 @@ startup_timeout_sec = 60
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"],
+      "args": ["gomami-mcp@0.1.1"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -114,7 +114,7 @@ startup_timeout_sec = 60
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"],
+      "args": ["gomami-mcp@0.1.1"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -130,7 +130,7 @@ startup_timeout_sec = 60
   "mcpServers": {
     "gomami": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"],
+      "args": ["gomami-mcp@0.1.1"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -142,7 +142,7 @@ startup_timeout_sec = 60
 用下面的命令配置本地 stdio 服务：
 
 ```bash
-uvx --from git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0 gomami-mcp
+uvx gomami-mcp@0.1.1
 ```
 
 DeepSeek Harness 可以在 `@deepseek-ai/dsh-mcp-client` 插件中使用这条命令。

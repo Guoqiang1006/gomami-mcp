@@ -1,0 +1,46 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Guoqiang1006/gomami-mcp",
+  "title": "GoMami (unofficial)",
+  "description": "Unofficial MCP server for managing GoMami servers, read-only by default",
+  "repository": {
+    "url": "https://github.com/Guoqiang1006/gomami-mcp",
+    "source": "github"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "gomami-mcp",
+      "version": "0.1.1",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "GOMAMI_API_TOKEN",
+          "description": "GoMami API token. Optional if the token is saved in ~/.config/gomami-mcp/token",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "GOMAMI_MCP_ACCESS",
+          "description": "Access tier: read, operate or full",
+          "format": "string",
+          "isRequired": false,
+          "default": "read",
+          "choices": ["read", "operate", "full"]
+        },
+        {
+          "name": "GOMAMI_MCP_PROTECTED_SERVERS",
+          "description": "Comma-separated server IDs that can be read but not changed",
+          "format": "string",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

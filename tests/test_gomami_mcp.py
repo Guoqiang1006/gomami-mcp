@@ -296,5 +296,27 @@ class ProtocolTests(unittest.TestCase):
         self.assertIn("No token configured", reply["result"]["content"][0]["text"])
 
 
+class ReleaseMetadataTests(unittest.TestCase):
+    root = Path(__file__).resolve().parents[1]
+
+    def test_server_json_matches_the_package(self) -> None:
+        server = json.loads((self.root / "server.json").read_text(encoding="utf-8"))
+        package = server["packages"][0]
+        self.assertEqual(server["version"], gm.__version__)
+        self.assertEqual(package["version"], gm.__version__)
+        self.assertEqual(package["identifier"], "gomami-mcp")
+        self.assertLessEqual(len(server["description"]), 100)
+
+    def test_readme_has_the_registry_ownership_marker(self) -> None:
+        server = json.loads((self.root / "server.json").read_text(encoding="utf-8"))
+        readme = (self.root / "README.md").read_text(encoding="utf-8")
+        self.assertIn(f"<!-- mcp-name: {server['name']} -->", readme)
+
+    def test_readmes_install_the_current_version(self) -> None:
+        for name in ("README.md", "README.zh-CN.md"):
+            readme = (self.root / name).read_text(encoding="utf-8")
+            self.assertIn(f"gomami-mcp@{gm.__version__}", readme)
+
+
 if __name__ == "__main__":
     unittest.main()
