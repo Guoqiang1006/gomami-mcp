@@ -1,5 +1,10 @@
 # GoMami MCP
 
+[![Test](https://github.com/Guoqiang1006/gomami-mcp/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Guoqiang1006/gomami-mcp/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/Guoqiang1006/gomami-mcp?include_prereleases)](https://github.com/Guoqiang1006/gomami-mcp/releases)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/github/license/Guoqiang1006/gomami-mcp)](LICENSE)
+
 [简体中文](README.zh-CN.md)
 
 An unofficial [Model Context Protocol](https://modelcontextprotocol.io) server for managing GoMami servers from Claude Code and other MCP clients. It is read-only by default and has no third-party dependencies.
@@ -45,6 +50,13 @@ Other MCP clients can use the same command with this configuration:
   }
 }
 ```
+
+## What you can ask
+
+- "List my GoMami servers and show their IP addresses."
+- "How much of this month's traffic period is left on my server?"
+- "Show the recent tasks for this server and tell me if any failed."
+- "Which OS templates can I rebuild this server with?"
 
 ## Configuration
 

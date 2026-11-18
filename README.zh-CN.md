@@ -1,5 +1,10 @@
 # GoMami MCP
 
+[![Test](https://github.com/Guoqiang1006/gomami-mcp/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Guoqiang1006/gomami-mcp/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/Guoqiang1006/gomami-mcp?include_prereleases)](https://github.com/Guoqiang1006/gomami-mcp/releases)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/github/license/Guoqiang1006/gomami-mcp)](LICENSE)
+
 [English](README.md)
 
 非官方的 [Model Context Protocol](https://modelcontextprotocol.io) 服务，让 Claude Code 等 MCP 客户端管理 GoMami 服务器。默认只读，没有第三方依赖。
@@ -31,6 +36,13 @@ claude mcp add gomami --scope user -- python3 /绝对路径/gomami-mcp/src/gomam
 ```
 
 4. 新开一个会话，让助手调用 `verify_connection`。
+
+## 可以这样问
+
+- “列出我的 GoMami 服务器和 IP 地址。”
+- “这台服务器本月的流量周期什么时候结束？”
+- “看看这台服务器最近的任务，有没有失败的？”
+- “这台服务器可以重装哪些系统？”
 
 ## 配置
 
