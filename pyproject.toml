@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gomami-mcp"
 dynamic = ["version"]
-description = "Unofficial MCP server for managing GoMami servers, read-only by default"
+description = "Unofficial MCP server for GoMami and other VirtFusion VPS panels, read-only by default"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-keywords = ["mcp", "model-context-protocol", "gomami", "vps"]
+keywords = ["mcp", "model-context-protocol", "gomami", "virtfusion", "vps"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
