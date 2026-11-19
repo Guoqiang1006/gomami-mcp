@@ -2,18 +2,18 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Guoqiang1006/gomami-mcp",
   "title": "GoMami (unofficial)",
-  "description": "Unofficial MCP server for managing GoMami servers, read-only by default",
+  "description": "Unofficial MCP server for GoMami and other VirtFusion VPS panels, read-only by default",
   "repository": {
     "url": "https://github.com/Guoqiang1006/gomami-mcp",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.2.0",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "gomami-mcp",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -21,7 +21,7 @@
       "environmentVariables": [
         {
           "name": "GOMAMI_API_TOKEN",
-          "description": "GoMami API token. Optional if the token is saved in ~/.config/gomami-mcp/token",
+          "description": "API token. Optional if the token is saved in ~/.config/gomami-mcp (see GOMAMI_TOKEN_FILE)",
           "format": "string",
           "isRequired": false,
           "isSecret": true
@@ -38,6 +38,19 @@
           "name": "GOMAMI_MCP_PROTECTED_SERVERS",
           "description": "Comma-separated server IDs that can be read but not changed",
           "format": "string",
+          "isRequired": false
+        },
+        {
+          "name": "GOMAMI_API_BASE",
+          "description": "VirtFusion panel API URL (https only). Defaults to GoMami: https://cp.gomami.io/api",
+          "format": "string",
+          "isRequired": false,
+          "default": "https://cp.gomami.io/api"
+        },
+        {
+          "name": "GOMAMI_TOKEN_FILE",
+          "description": "Token file path. Defaults to ~/.config/gomami-mcp/token for GoMami and token-<host> for other panels",
+          "format": "filepath",
           "isRequired": false
         }
       ]

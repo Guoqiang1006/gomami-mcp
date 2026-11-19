@@ -7,7 +7,7 @@
 
 [English](README.md)
 
-让支持 [Model Context Protocol](https://modelcontextprotocol.io) 的 AI Agent 管理你的 GoMami 服务器，包括 Claude Code、Codex、Cursor 和 VS Code。
+让支持 [Model Context Protocol](https://modelcontextprotocol.io) 的 AI Agent 管理你的 GoMami 服务器，包括 Claude Code、Codex、Cursor 和 VS Code。也可以用于其他使用 VirtFusion 面板的 VPS 商家，例如绿云（GreenCloud），见 [其他 VirtFusion 面板](#其他-virtfusion-面板)。
 
 - **默认只读：** 只有明确开启后，才能改动服务器。
 - **在你的电脑上运行：** 不需要部署服务器，令牌只会发送给 GoMami。
@@ -72,7 +72,7 @@
 ### Claude Code
 
 ```bash
-claude mcp add gomami --scope user -- uvx gomami-mcp@0.1.1
+claude mcp add gomami --scope user -- uvx gomami-mcp@0.2.0
 ```
 
 ### Codex
@@ -82,7 +82,7 @@ claude mcp add gomami --scope user -- uvx gomami-mcp@0.1.1
 ```toml
 [mcp_servers.gomami]
 command = "uvx"
-args = ["gomami-mcp@0.1.1"]
+args = ["gomami-mcp@0.2.0"]
 env = { GOMAMI_MCP_ACCESS = "read" }
 startup_timeout_sec = 60
 ```
@@ -97,7 +97,7 @@ startup_timeout_sec = 60
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["gomami-mcp@0.1.1"],
+      "args": ["gomami-mcp@0.2.0"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -114,7 +114,7 @@ startup_timeout_sec = 60
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["gomami-mcp@0.1.1"],
+      "args": ["gomami-mcp@0.2.0"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -130,7 +130,7 @@ startup_timeout_sec = 60
   "mcpServers": {
     "gomami": {
       "command": "uvx",
-      "args": ["gomami-mcp@0.1.1"],
+      "args": ["gomami-mcp@0.2.0"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -142,10 +142,28 @@ startup_timeout_sec = 60
 用下面的命令配置本地 stdio 服务：
 
 ```bash
-uvx gomami-mcp@0.1.1
+uvx gomami-mcp@0.2.0
 ```
 
 DeepSeek Harness 可以在 `@deepseek-ai/dsh-mcp-client` 插件中使用这条命令。
+
+## 其他 VirtFusion 面板
+
+GoMami 的面板是 [VirtFusion](https://virtfusion.com)。其他使用 VirtFusion 的商家提供同样的用户 API，所以可以把本项目指向他们的面板。可以在面板里找 API 页面，例如 `/account/api`。
+
+1. 保存这个面板的令牌。每个面板使用单独的文件，文件名带上面板的域名。例如绿云（`cp.green.cloud`）：
+
+   ```bash
+   (umask 077; mkdir -p ~/.config/gomami-mcp; IFS= read -rs t; printf '%s\n' "$t" > ~/.config/gomami-mcp/token-cp.green.cloud; unset t)
+   ```
+
+2. 再添加一个服务，把 `GOMAMI_API_BASE` 设为面板的 API 地址。Claude Code 的写法：
+
+   ```bash
+   claude mcp add greencloud --scope user -e GOMAMI_API_BASE=https://cp.green.cloud/api -- uvx gomami-mcp@0.2.0
+   ```
+
+绿云已用只读工具测试过。其他面板尚未测试，商家也可能关闭部分接口。
 
 ## 设置
 
@@ -153,7 +171,9 @@ DeepSeek Harness 可以在 `@deepseek-ai/dsh-mcp-client` 插件中使用这条�
 | --- | --- | --- |
 | `GOMAMI_MCP_ACCESS` | `read` | 权限级别：`read`、`operate` 或 `full`。无法识别的值按 `read` 处理。 |
 | `GOMAMI_MCP_PROTECTED_SERVERS` | 空 | 逗号分隔的服务器 ID，这些服务器只能查询，不能改动。 |
-| `GOMAMI_API_TOKEN` | 空 | 令牌内容，优先于 `~/.config/gomami-mcp/token`。 |
+| `GOMAMI_API_BASE` | `https://cp.gomami.io/api` | VirtFusion 面板的 API 地址，只接受 `https://`。地址无效时会拒绝所有请求，不会改用 GoMami。 |
+| `GOMAMI_TOKEN_FILE` | 见说明 | 令牌文件。GoMami 默认是 `~/.config/gomami-mcp/token`，其他面板默认是 `~/.config/gomami-mcp/token-<域名>`，这样令牌不会发给别的商家。 |
+| `GOMAMI_API_TOKEN` | 空 | 令牌内容，优先于令牌文件。如果同时使用多个面板，建议用令牌文件，因为这个值会发给 `GOMAMI_API_BASE` 指定的面板。 |
 
 ## 工具
 

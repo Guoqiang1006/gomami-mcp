@@ -9,7 +9,7 @@ Please use GitHub's private vulnerability reporting for this repository. Do not 
 - **Accidental actions.** Access is read-only by default, and each state-changing tool needs exact confirmation text.
 - **Actions on chosen servers.** `GOMAMI_MCP_PROTECTED_SERVERS` refuses state-changing tools for the listed servers, whatever the model sends.
 - **Secrets entering the chat.** VNC credentials are redacted, and reset passwords are written to a local file with mode `600`.
-- **Token leaks.** The token is only sent to `https://cp.gomami.io/api`, redirects are not followed, and the token is never included in tool output.
+- **Token leaks.** The token is only sent to `GOMAMI_API_BASE` (by default `https://cp.gomami.io/api`), which must use HTTPS. An invalid value refuses every request rather than falling back to GoMami. Each panel reads its own token file by default, redirects are not followed, and the token is never included in tool output.
 
 ## What it does not protect against
 
@@ -17,4 +17,4 @@ Please use GitHub's private vulnerability reporting for this repository. Do not 
 - **Prompt injection.** Text returned by the API, such as a server name, reaches the model. Keep the access tier as low as your task allows.
 - **A compromised local account.** Anyone who can read your user's files can read the token file and saved passwords.
 
-GoMami API tokens have full account access. Revoke a token in the GoMami control panel if you think it has been exposed.
+VirtFusion API tokens, including GoMami's, have full account access. Revoke a token in your host's control panel if you think it has been exposed.

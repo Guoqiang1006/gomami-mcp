@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import stat
@@ -8,6 +10,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -294,6 +297,52 @@ class ProtocolTests(unittest.TestCase):
                                 "params": {"name": "verify_connection", "arguments": {}}}])[0]
         self.assertTrue(reply["result"]["isError"])
         self.assertIn("No token configured", reply["result"]["content"][0]["text"])
+
+
+class PanelUrlTests(unittest.TestCase):
+    def setUp(self) -> None:
+        home = tempfile.TemporaryDirectory()
+        self.addCleanup(home.cleanup)
+        patcher = mock.patch.object(gm.Path, "home", return_value=Path(home.name))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def token_error(self, environ: dict[str, str]) -> str:
+        service = gm.build_service(environ)
+        with self.assertRaises(gm.ToolError) as caught:
+            service.client._token_loader()
+        return str(caught.exception)
+
+    def test_default_panel_is_gomami_with_original_token_file(self) -> None:
+        service = gm.build_service({})
+        self.assertEqual(service.client._base_url, gm.API_BASE)
+        self.assertEqual(gm.panel_label({}), "GoMami")
+        self.assertTrue(self.token_error({}).rstrip(".").endswith("/token"))
+
+    def test_custom_panel_uses_its_own_token_file(self) -> None:
+        environ = {"GOMAMI_API_BASE": "https://cp.example.com/api/"}
+        service = gm.build_service(environ)
+        self.assertEqual(service.client._base_url, "https://cp.example.com/api")
+        self.assertEqual(gm.panel_label(environ), "cp.example.com")
+        self.assertTrue(self.token_error(environ).rstrip(".").endswith("/token-cp.example.com"))
+
+    def test_token_file_can_be_set_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "panel-token"
+            path.write_text("abc\n", encoding="utf-8")
+            path.chmod(0o600)
+            service = gm.build_service({"GOMAMI_API_BASE": "https://cp.example.com/api", "GOMAMI_TOKEN_FILE": str(path)})
+            self.assertEqual(service.client._token_loader(), "abc")
+
+    def test_invalid_panel_url_refuses_every_request(self) -> None:
+        for value in ("http://cp.example.com/api", "https://user:pw@cp.example.com/api", "https://cp.example.com/api?x=1", "cp.example.com"):
+            with self.subTest(value=value):
+                environ = {"GOMAMI_API_BASE": value, "GOMAMI_API_TOKEN": "abc"}
+                with contextlib.redirect_stderr(io.StringIO()):
+                    service = gm.build_service(environ)
+                result = gm.McpServer(service)._call_tool({"name": "verify_connection", "arguments": {}})
+                self.assertTrue(result["isError"])
+                self.assertIn("No request was sent", result["content"][0]["text"])
 
 
 class ReleaseMetadataTests(unittest.TestCase):

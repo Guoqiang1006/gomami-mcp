@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unofficial MCP server for the GoMami customer API. Standard library only."""
+"""Unofficial MCP server for the GoMami customer API and other VirtFusion panels. Standard library only."""
 from __future__ import annotations
 
 import json
@@ -14,13 +14,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 API_BASE = "https://cp.gomami.io/api"
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
 TIMEOUT_SECONDS = 30
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
-REDACTED = "[hidden; view it in the GoMami control panel]"
+REDACTED = "[hidden; view it in the control panel]"
 SENSITIVE_KEY = re.compile(r"password|passphrase|secret|token|^wss$", re.IGNORECASE)
 TIERS = ("read", "operate", "full")
 SAFE_ID = r"^[A-Za-z0-9_-]{1,64}$"
@@ -303,6 +303,7 @@ class GomamiClient:
     def __init__(self, token_loader: Callable[[], str], base_url: str = API_BASE):
         self._token_loader = token_loader
         self._base_url = base_url.rstrip("/")
+        self._host = urllib.parse.urlsplit(self._base_url).hostname or "the API"
         self._opener = urllib.request.build_opener(_NoRedirect)
 
     def request(self, method: str, path: str, query: dict[str, Any], body: dict[str, Any] | None) -> Any:
@@ -329,16 +330,16 @@ class GomamiClient:
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             reason = getattr(error, "reason", error)
             hint = "" if method == "GET" else " The action may have been submitted. Check list_tasks before retrying."
-            raise ToolError(f"Could not reach the GoMami API: {reason}.{hint}") from None
+            raise ToolError(f"Could not reach {self._host}: {reason}.{hint}") from None
 
     @staticmethod
     def _parse_success(status: int, headers: Any, raw: bytes) -> Any:
         if len(raw) > MAX_RESPONSE_BYTES:
-            raise ToolError("The GoMami API response was too large, so reading stopped.")
+            raise ToolError("The API response was too large, so reading stopped.")
         if not raw.strip():  # GET /connect answers 200 with an empty text/html body.
             return {"ok": True, "status": status}
         if "text/html" in (headers.get("Content-Type") or "").lower():
-            raise ToolError("The GoMami API returned a web page instead of JSON. Cloudflare may have blocked the request.")
+            raise ToolError("The API returned a web page instead of JSON. Cloudflare may have blocked the request.")
         try:
             return json.loads(raw)
         except ValueError:
@@ -362,19 +363,33 @@ class GomamiClient:
             401: "The token is missing, invalid or expired (HTTP 401).",
             404: "The resource does not exist or is not on this account (HTTP 404).",
             409: "The server's current state does not allow this action. A task may be running (HTTP 409).",
-            422: "GoMami rejected these arguments (HTTP 422).",
-            503: "The GoMami API is temporarily unavailable (HTTP 503).",
+            422: "The API rejected these arguments (HTTP 422).",
+            503: "The API is temporarily unavailable (HTTP 503).",
         }
         if status == 429:
             message = f"Too many requests (HTTP 429). Limit resets at: {headers.get('X-RateLimit-Reset') or 'unknown'}."
         elif status in (301, 302, 303, 307, 308):
-            message = f"The GoMami API returned a redirect (HTTP {status}). It was not followed, to protect the token."
+            message = f"The API returned a redirect (HTTP {status}). It was not followed, to protect the token."
         else:
-            message = messages.get(status, f"The GoMami API returned an error (HTTP {status}).")
+            message = messages.get(status, f"The API returned an error (HTTP {status}).")
         return f"{message} {detail}".strip()
 
 
 # --- Token loading ---------------------------------------------------------
+
+def parse_api_base(value: str) -> str:
+    """Return a normalised panel API URL, or raise ValueError.
+
+    Only HTTPS is accepted, so the bearer token is never sent in clear text.
+    """
+    url = value.strip().rstrip("/")
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != "https" or not parts.hostname:
+        raise ValueError("GOMAMI_API_BASE must be an https:// URL, for example https://cp.example.com/api")
+    if parts.username or parts.password or parts.query or parts.fragment:
+        raise ValueError("GOMAMI_API_BASE must not contain credentials, a query string or a fragment")
+    return url
+
 
 def load_token(environ: dict[str, str], token_file: Path) -> str:
     token = environ.get("GOMAMI_API_TOKEN", "").strip()
@@ -452,8 +467,9 @@ class RpcError(Exception):
 
 
 class McpServer:
-    def __init__(self, service: GomamiService):
+    def __init__(self, service: GomamiService, panel: str = "GoMami"):
         self.service = service
+        self.panel = panel
 
     def dispatch(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
         if method == "initialize":
@@ -463,7 +479,7 @@ class McpServer:
                 "capabilities": {"tools": {"listChanged": False}},
                 "serverInfo": {"name": "gomami", "title": "GoMami (unofficial)", "version": __version__},
                 "instructions": (
-                    f"Manages GoMami servers. Current access: {self.service.access}. "
+                    f"Manages {self.panel} servers. Current access: {self.service.access}. "
                     "These servers may run production services. Before any action that changes a server, "
                     "explain the impact to the user and get their agreement."
                 ),
@@ -526,6 +542,27 @@ class McpServer:
                 stdout.flush()
 
 
+def default_token_name(base: str) -> str:
+    """GoMami keeps the original file name; any other panel gets its own file, so tokens never cross."""
+    return "token" if base == API_BASE else f"token-{urllib.parse.urlsplit(base).hostname}"
+
+
+def _refuse(message: str) -> Callable[[], str]:
+    def loader() -> str:
+        raise ToolError(message)
+    return loader
+
+
+def panel_label(environ: dict[str, str]) -> str:
+    """Name shown to the agent: GoMami by default, otherwise the panel's host name."""
+    try:
+        base = parse_api_base(environ.get("GOMAMI_API_BASE", "") or API_BASE)
+    except ValueError:
+        return "VirtFusion"
+    host = urllib.parse.urlsplit(base).hostname or ""
+    return "GoMami" if base == API_BASE else host
+
+
 def build_service(environ: dict[str, str]) -> GomamiService:
     access = environ.get("GOMAMI_MCP_ACCESS", "read").strip().lower() or "read"
     if access not in TIERS:
@@ -533,12 +570,20 @@ def build_service(environ: dict[str, str]) -> GomamiService:
         access = "read"
     config_dir = Path.home() / ".config" / "gomami-mcp"
     protected = {item.strip().lower() for item in environ.get("GOMAMI_MCP_PROTECTED_SERVERS", "").split(",") if item.strip()}
-    client = GomamiClient(lambda: load_token(environ, config_dir / "token"))
+    try:
+        base = parse_api_base(environ.get("GOMAMI_API_BASE", "") or API_BASE)
+    except ValueError as error:
+        # Never fall back to the default panel: that would send this token to the wrong company.
+        print(f"gomami-mcp: {error}", file=sys.stderr)
+        return GomamiService(GomamiClient(_refuse(f"{error}. No request was sent."), API_BASE), access, protected, config_dir)
+    token_file = Path(environ.get("GOMAMI_TOKEN_FILE", "").strip() or config_dir / default_token_name(base)).expanduser()
+    client = GomamiClient(lambda: load_token(environ, token_file), base)
     return GomamiService(client, access, protected, config_dir)
 
 
 def main() -> None:
-    McpServer(build_service(dict(os.environ))).serve(sys.stdin.buffer, sys.stdout.buffer)
+    environ = dict(os.environ)
+    McpServer(build_service(environ), panel_label(environ)).serve(sys.stdin.buffer, sys.stdout.buffer)
 
 
 if __name__ == "__main__":

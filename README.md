@@ -9,7 +9,7 @@
 
 [简体中文](https://github.com/Guoqiang1006/gomami-mcp/blob/main/README.zh-CN.md)
 
-Manage your GoMami servers from any AI agent that supports the [Model Context Protocol](https://modelcontextprotocol.io), including Claude Code, Codex, Cursor and VS Code.
+Manage your GoMami servers from any AI agent that supports the [Model Context Protocol](https://modelcontextprotocol.io), including Claude Code, Codex, Cursor and VS Code. It also works with other VPS hosts whose control panel runs VirtFusion, such as GreenCloud. See [Other VirtFusion panels](#other-virtfusion-panels).
 
 - **Read-only by default.** Changing a server has to be turned on explicitly.
 - **Runs on your computer.** There is nothing to host, and your token goes only to GoMami.
@@ -74,7 +74,7 @@ Desktop apps may not find `uvx` on their `PATH`. If the server fails to start, r
 ### Claude Code
 
 ```bash
-claude mcp add gomami --scope user -- uvx gomami-mcp@0.1.1
+claude mcp add gomami --scope user -- uvx gomami-mcp@0.2.0
 ```
 
 ### Codex
@@ -84,7 +84,7 @@ Add this to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.gomami]
 command = "uvx"
-args = ["gomami-mcp@0.1.1"]
+args = ["gomami-mcp@0.2.0"]
 env = { GOMAMI_MCP_ACCESS = "read" }
 startup_timeout_sec = 60
 ```
@@ -99,7 +99,7 @@ Add this to `~/.cursor/mcp.json`:
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["gomami-mcp@0.1.1"],
+      "args": ["gomami-mcp@0.2.0"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -116,7 +116,7 @@ Add this to `.vscode/mcp.json`:
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["gomami-mcp@0.1.1"],
+      "args": ["gomami-mcp@0.2.0"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -132,7 +132,7 @@ Add this to `claude_desktop_config.json`:
   "mcpServers": {
     "gomami": {
       "command": "uvx",
-      "args": ["gomami-mcp@0.1.1"],
+      "args": ["gomami-mcp@0.2.0"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -144,10 +144,28 @@ Add this to `claude_desktop_config.json`:
 Configure a local stdio server with this command:
 
 ```bash
-uvx gomami-mcp@0.1.1
+uvx gomami-mcp@0.2.0
 ```
 
 For DeepSeek Harness, use this command with its `@deepseek-ai/dsh-mcp-client` plugin.
+
+## Other VirtFusion panels
+
+GoMami's panel is [VirtFusion](https://virtfusion.com). Other hosts that use VirtFusion expose the same customer API, so you can point this server at their panel instead. Look for an API page in your panel, such as `/account/api`.
+
+1. Save that panel's token. Each panel gets its own file, named after the panel's host. For example, for GreenCloud (`cp.green.cloud`):
+
+   ```bash
+   (umask 077; mkdir -p ~/.config/gomami-mcp; IFS= read -rs t; printf '%s\n' "$t" > ~/.config/gomami-mcp/token-cp.green.cloud; unset t)
+   ```
+
+2. Add a second server entry with `GOMAMI_API_BASE` set to the panel's API URL. For Claude Code:
+
+   ```bash
+   claude mcp add greencloud --scope user -e GOMAMI_API_BASE=https://cp.green.cloud/api -- uvx gomami-mcp@0.2.0
+   ```
+
+GreenCloud has been tested with the read-only tools. Other panels have not been tested, and a host may turn off parts of the API.
 
 ## Settings
 
@@ -155,7 +173,9 @@ For DeepSeek Harness, use this command with its `@deepseek-ai/dsh-mcp-client` pl
 | --- | --- | --- |
 | `GOMAMI_MCP_ACCESS` | `read` | Access tier: `read`, `operate` or `full`. Unknown values fall back to `read`. |
 | `GOMAMI_MCP_PROTECTED_SERVERS` | empty | Comma-separated server IDs that can be read but not changed. |
-| `GOMAMI_API_TOKEN` | empty | Token value. Takes priority over `~/.config/gomami-mcp/token`. |
+| `GOMAMI_API_BASE` | `https://cp.gomami.io/api` | API URL of a VirtFusion panel. Only `https://` is accepted. If the value is invalid, every request is refused instead of falling back to GoMami. |
+| `GOMAMI_TOKEN_FILE` | see note | Token file. Defaults to `~/.config/gomami-mcp/token` for GoMami and `~/.config/gomami-mcp/token-<host>` for other panels, so a token is never sent to the wrong host. |
+| `GOMAMI_API_TOKEN` | empty | Token value. Takes priority over the token file. If you use more than one panel, prefer token files, because this value is sent to whichever panel `GOMAMI_API_BASE` names. |
 
 ## Tools
 
