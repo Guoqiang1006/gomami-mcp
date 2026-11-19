@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 API_BASE = "https://cp.gomami.io/api"
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")

@@ -1,11 +1,13 @@
 # GoMami MCP
 
+<!-- mcp-name: io.github.Guoqiang1006/gomami-mcp -->
+
 [![Test](https://github.com/Guoqiang1006/gomami-mcp/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Guoqiang1006/gomami-mcp/actions/workflows/test.yml)
 [![Release](https://img.shields.io/github/v/release/Guoqiang1006/gomami-mcp?include_prereleases)](https://github.com/Guoqiang1006/gomami-mcp/releases)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
-[![License: MIT](https://img.shields.io/github/license/Guoqiang1006/gomami-mcp)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/Guoqiang1006/gomami-mcp/blob/main/pyproject.toml)
+[![License: MIT](https://img.shields.io/github/license/Guoqiang1006/gomami-mcp)](https://github.com/Guoqiang1006/gomami-mcp/blob/main/LICENSE)
 
-[简体中文](README.zh-CN.md)
+[简体中文](https://github.com/Guoqiang1006/gomami-mcp/blob/main/README.zh-CN.md)
 
 Manage your GoMami servers from any AI agent that supports the [Model Context Protocol](https://modelcontextprotocol.io), including Claude Code, Codex, Cursor and VS Code.
 
@@ -72,7 +74,7 @@ Desktop apps may not find `uvx` on their `PATH`. If the server fails to start, r
 ### Claude Code
 
 ```bash
-claude mcp add gomami --scope user -- uvx --from git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0 gomami-mcp
+claude mcp add gomami --scope user -- uvx gomami-mcp@0.1.1
 ```
 
 ### Codex
@@ -82,7 +84,7 @@ Add this to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.gomami]
 command = "uvx"
-args = ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"]
+args = ["gomami-mcp@0.1.1"]
 env = { GOMAMI_MCP_ACCESS = "read" }
 startup_timeout_sec = 60
 ```
@@ -97,7 +99,7 @@ Add this to `~/.cursor/mcp.json`:
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"],
+      "args": ["gomami-mcp@0.1.1"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -114,7 +116,7 @@ Add this to `.vscode/mcp.json`:
     "gomami": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"],
+      "args": ["gomami-mcp@0.1.1"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -130,7 +132,7 @@ Add this to `claude_desktop_config.json`:
   "mcpServers": {
     "gomami": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0", "gomami-mcp"],
+      "args": ["gomami-mcp@0.1.1"],
       "env": { "GOMAMI_MCP_ACCESS": "read" }
     }
   }
@@ -142,7 +144,7 @@ Add this to `claude_desktop_config.json`:
 Configure a local stdio server with this command:
 
 ```bash
-uvx --from git+https://github.com/Guoqiang1006/gomami-mcp.git@v0.1.0 gomami-mcp
+uvx gomami-mcp@0.1.1
 ```
 
 For DeepSeek Harness, use this command with its `@deepseek-ai/dsh-mcp-client` plugin.
@@ -171,7 +173,7 @@ For DeepSeek Harness, use this command with its `@deepseek-ai/dsh-mcp-client` pl
 - **Secrets stay out of the chat.** VNC credentials are hidden, and reset passwords are saved under `~/.config/gomami-mcp/secrets/` with mode `600`.
 - **Write requests are never retried automatically.**
 
-See [SECURITY.md](SECURITY.md) for details and limits.
+See [SECURITY.md](https://github.com/Guoqiang1006/gomami-mcp/blob/main/SECURITY.md) for details and limits.
 
 ## Known limitations
 
@@ -190,4 +192,4 @@ Tests use a local mock and never contact GoMami.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/Guoqiang1006/gomami-mcp/blob/main/LICENSE)

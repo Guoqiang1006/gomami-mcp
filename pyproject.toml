@@ -26,6 +26,11 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/Guoqiang1006/gomami-mcp"
+Issues = "https://github.com/Guoqiang1006/gomami-mcp/issues"
+Changelog = "https://github.com/Guoqiang1006/gomami-mcp/releases"
+
 [project.scripts]
 gomami-mcp = "gomami_mcp:main"
 
